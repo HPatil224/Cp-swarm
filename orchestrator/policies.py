@@ -13,35 +13,27 @@ def should_escalate_to_mathematician(report: AdversaryReport, state: RunState) -
     """
     True if the Adversary flagged the approach itself as wrong AND we
     haven't exhausted mathematician_escalations.
-
-    TODO(phase 4): implement. Note: even if likely_wrong_approach=True,
-    should still respect max_mathematician_escalations — if we've already
-    escalated twice and it's still failing, that's a "give up and report"
-    situation, not infinite escalation.
     """
-    raise NotImplementedError
+    return report.likely_wrong_approach and state.mathematician_escalations_used < settings.policy.max_mathematician_escalations
 
 
 def should_retry_architect(report: AdversaryReport, state: RunState) -> bool:
     """
     True if failure is a code-level bug (not likely_wrong_approach) AND
-    architect_retries_used < max_architect_retries.
-
-    TODO(phase 4): implement.
+    architect_retries_used < settings.policy.max_architect_retries.
     """
-    raise NotImplementedError
+    return not report.likely_wrong_approach and state.architect_retries_used < settings.policy.max_architect_retries
 
 
 def is_solved(report: AdversaryReport) -> bool:
     return report.passed
 
 
-def should_give_up(state: RunState) -> bool:
+def give_up_reason(state: RunState) -> str:
     """
-    True if we've exhausted both architect retries (for the current
-    approach) and mathematician escalations.
-
-    TODO(phase 4): implement. This determines state.final_status =
-    "exhausted_retries" vs "exhausted_escalations" for the final report.
+    Determines the final status label when retries are exhausted.
     """
-    raise NotImplementedError
+    if state.mathematician_escalations_used >= settings.policy.max_mathematician_escalations:
+        return "exhausted_escalations"
+    else:
+        return "exhausted_retries"

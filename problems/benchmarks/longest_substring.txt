@@ -1,0 +1,27 @@
+Title: Longest Substring Without Repeating Characters
+
+Statement:
+You are given a string S of length N consisting of lowercase English letters. Find the length of the longest substring of S that contains no repeating characters.
+
+Constraints:
+1 <= N <= 10^5
+Time limit: 2.0 seconds
+Memory limit: 256 MB
+
+Input format:
+A single line containing the string S.
+
+Output format:
+A single integer representing the length of the longest substring without repeating characters.
+
+Sample Input 1:
+abcabcbb
+
+Sample Output 1:
+3
+
+Sample Input 2:
+bbbbb
+
+Sample Output 2:
+1

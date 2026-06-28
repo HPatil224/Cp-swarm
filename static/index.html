@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swarm Solver Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>Swarm<span>Solver</span></h2>
+                <p>AI Competitive Programmer Swarm</p>
+            </div>
+            
+            <button id="btn-custom-problem" class="btn btn-primary btn-full">+ Custom Problem</button>
+            
+            <div class="sidebar-section">
+                <h3>Benchmark Problems</h3>
+                <ul id="problems-list" class="nav-list">
+                    <!-- Loaded dynamically -->
+                    <li class="loading-item">Loading problems...</li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>Historical Runs</h3>
+                <ul id="runs-list" class="nav-list">
+                    <!-- Loaded dynamically -->
+                    <li class="loading-item">Loading history...</li>
+                </ul>
+            </div>
+        </aside>
+        
+        <!-- Main Content Panel -->
+        <main class="main-content">
+            <!-- Header Status Panel -->
+            <header class="main-header">
+                <div class="active-problem-info">
+                    <span class="category-badge" id="category-badge">Benchmarks</span>
+                    <h1 id="active-title">Select a problem to start</h1>
+                </div>
+                <div class="solver-actions">
+                    <button id="btn-run-solver" class="btn btn-success" disabled>Run Swarm Solver</button>
+                </div>
+            </header>
+            
+            <!-- Dynamic Main Section -->
+            <section class="content-body">
+                <!-- Welcome View -->
+                <div id="welcome-view" class="card view-panel">
+                    <h2>Welcome to the Swarm Solver Dashboard!</h2>
+                    <p>Select an existing competitive programming problem from the sidebar on the left, or input a custom task to observe the multi-agent swarm write, debug, and stress-test solutions in real-time.</p>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>🧠 The Mathematician</h4>
+                            <p>Analyzes logic constraints, selects optimal algorithmic structures, and structures solution pseudocode.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🛠️ The Architect</h4>
+                            <p>Writes fully compilable, optimized C++ source code following complexity budgets.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔥 The Adversary</h4>
+                            <p>Generates stress test inputs and differential brute-force models to verify soundness in a Win32 sandbox.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Custom Problem Form -->
+                <div id="custom-form-view" class="card view-panel hidden">
+                    <h2>Submit Custom Problem</h2>
+                    <p class="section-desc">Piped directly to the multi-agent solver loop.</p>
+                    <form id="custom-problem-form">
+                        <div class="form-group">
+                            <label for="custom-title">Problem Title</label>
+                            <input type="text" id="custom-title" required placeholder="e.g. Range Minimum Queries">
+                        </div>
+                        <div class="form-group">
+                            <label for="custom-statement">Problem Statement</label>
+                            <textarea id="custom-statement" required rows="6" placeholder="Describe the constraints and requirements..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Sample Test Cases</label>
+                            <div id="samples-container">
+                                <div class="sample-pair">
+                                    <div class="sub-group">
+                                        <label>Input</label>
+                                        <textarea class="sample-input" required placeholder="e.g. 5 2&#10;1 3 2 5 4"></textarea>
+                                    </div>
+                                    <div class="sub-group">
+                                        <label>Expected Output</label>
+                                        <textarea class="sample-output" required placeholder="e.g. 1"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="btn-add-sample" class="btn btn-secondary btn-sm">+ Add Sample Pair</button>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Create & Load Problem</button>
+                            <button type="button" id="btn-cancel-custom" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Active Run Viewer -->
+                <div id="run-view" class="view-panel hidden">
+                    <!-- Stepper Status Map -->
+                    <div class="stepper card">
+                        <div class="step" id="step-math">
+                            <div class="step-num">1</div>
+                            <div class="step-label">Mathematician</div>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step" id="step-arch">
+                            <div class="step-num">2</div>
+                            <div class="step-label">Architect</div>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step" id="step-adv">
+                            <div class="step-num">3</div>
+                            <div class="step-label">Adversary</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Real-time Agent Output Grid -->
+                    <div class="dashboard-grid">
+                        <!-- Left Panel: Steps Details -->
+                        <div class="left-dash flex-col">
+                            <!-- Mathematician Approach Card -->
+                            <div class="card agent-card hidden" id="card-mathematician">
+                                <div class="card-header">
+                                    <span class="avatar">🧠</span>
+                                    <div>
+                                        <h4>Mathematician Approach</h4>
+                                        <p class="meta-desc" id="math-pattern">Loading...</p>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Complexity Bound</strong>: <code id="math-complexity">O(N)</code></p>
+                                    <p><strong>Justification</strong>:</p>
+                                    <p class="notes" id="math-justification">Thinking...</p>
+                                    <p><strong>Pseudocode</strong>:</p>
+                                    <pre><code id="math-pseudocode">// Pseudocode will appear here</code></pre>
+                                </div>
+                            </div>
+                            
+                            <!-- C++ Code versioning card -->
+                            <div class="card agent-card hidden" id="card-architect">
+                                <div class="card-header">
+                                    <span class="avatar">🛠️</span>
+                                    <div>
+                                        <h4>Architect Version <span id="code-version-badge">1</span></h4>
+                                        <p class="meta-desc">C++ Implementation</p>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Notes</strong>: <span class="notes" id="code-notes">none</span></p>
+                                    <div class="code-container">
+                                        <button class="btn btn-secondary btn-sm copy-btn" id="btn-copy-cpp">Copy Code</button>
+                                        <pre><code id="code-cpp" class="language-cpp">// Loading C++ code...</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Panel: Run Status Logs -->
+                        <div class="right-dash flex-col">
+                            <!-- Adversary Outcomes Card -->
+                            <div class="card agent-card hidden" id="card-adversary">
+                                <div class="card-header">
+                                    <span class="avatar">🔥</span>
+                                    <div>
+                                        <h4>Adversary Evaluation</h4>
+                                        <p class="meta-desc">Stress testing and limits evaluation</p>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="status-summary" id="adv-summary">
+                                        Checking correctness...
+                                    </div>
+                                    <div class="error-panel hidden" id="adv-error-panel">
+                                        <h5 class="failing-header">Failing Test Case</h5>
+                                        <p><strong>Hypothesis</strong>: <span id="adv-failing-hypothesis">none</span></p>
+                                        <p><strong>Input</strong>:</p>
+                                        <pre><code id="adv-failing-input"></code></pre>
+                                        <p><strong>Expected Output</strong>:</p>
+                                        <pre><code id="adv-failing-expected"></code></pre>
+                                        <p><strong>Actual Output</strong>:</p>
+                                        <pre><code id="adv-failing-actual"></code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Real-time Console Log Terminal -->
+                            <div class="card terminal-card flex-grow">
+                                <div class="card-header">
+                                    <h4>Run Terminal Console Logs</h4>
+                                </div>
+                                <div class="terminal-body" id="terminal-console">
+                                    <p class="log-line system">[System] Select a problem and run solver to observe trace...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>

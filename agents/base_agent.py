@@ -7,7 +7,6 @@ only need to define their prompt + how to parse the response.
 import os
 import time
 import json
-import anthropic
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -25,7 +24,7 @@ class AgentCallLog:
 
 class BaseAgent(ABC):
     """
-    Shared base class for all three agents. Handles Anthropic API communication,
+    Shared base class for all three agents. Handles Anthropic and Google Gemini API communication,
     transient retry logic, and transaction logging.
     """
 
@@ -35,8 +34,16 @@ class BaseAgent(ABC):
         self.model = model
         self.prompts_dir = prompts_dir
         
-        api_key = os.environ.get("ANTHROPIC_API_KEY", "mock_key_for_testing")
-        self.client = anthropic.Anthropic(api_key=api_key)
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+        if gemini_key or "gemini" in model.lower():
+            from google import genai
+            self.provider = "gemini"
+            self.client = genai.Client(api_key=gemini_key or "mock_key_for_testing")
+        else:
+            import anthropic
+            self.provider = "anthropic"
+            api_key = os.environ.get("ANTHROPIC_API_KEY", "mock_key_for_testing")
+            self.client = anthropic.Anthropic(api_key=api_key)
 
     @abstractmethod
     def system_prompt_filename(self) -> str:
@@ -48,37 +55,78 @@ class BaseAgent(ABC):
 
     def call(self, user_message: str, run_id: str = "default") -> str:
         """
-        Call the Anthropic API with transient retry logic.
+        Call the appropriate LLM API with transient retry logic.
         """
         system_prompt = self.load_system_prompt()
         
-        max_retries = 3
+        max_retries = 10
         backoff = 2.0
         
         for attempt in range(max_retries):
             try:
+                # Add natural rate limiting throttle (3 seconds delay) for Gemini free tier
+                if self.provider == "gemini":
+                    time.sleep(3.0)
+                    
                 start_time = time.perf_counter()
-                response = self.client.messages.create(
-                    model=self.model,
-                    max_tokens=4000,
-                    system=system_prompt,
-                    messages=[
-                        {"role": "user", "content": user_message}
-                    ]
-                )
+                
+                if self.provider == "gemini":
+                    from google.genai import types
+                    response = self.client.models.generate_content(
+                        model=self.model,
+                        contents=user_message,
+                        config=types.GenerateContentConfig(
+                            system_instruction=system_prompt,
+                            max_output_tokens=4000
+                        )
+                    )
+                    raw_response = response.text or ""
+                else:
+                    response = self.client.messages.create(
+                        model=self.model,
+                        max_tokens=4000,
+                        system=system_prompt,
+                        messages=[
+                            {"role": "user", "content": user_message}
+                        ]
+                    )
+                    raw_response = ""
+                    for block in response.content:
+                        if block.type == "text":
+                            raw_response += block.text
+                
                 duration = time.perf_counter() - start_time
-                
-                raw_response = ""
-                for block in response.content:
-                    if block.type == "text":
-                        raw_response += block.text
-                
                 self.log_call(run_id, user_message, raw_response, duration)
                 return raw_response
             except Exception as e:
                 if attempt == max_retries - 1:
                     raise e
-                time.sleep(backoff ** attempt)
+                
+                error_str = str(e).lower()
+                if "429" in error_str or "resource_exhausted" in error_str or "quota" in error_str:
+                    import logging
+                    import re
+                    logger = logging.getLogger("agents.base")
+                    
+                    sleep_time = 15 * (attempt + 1)
+                    match_msg = re.search(r"please\s+retry\s+in\s+([\d\.]+)\s*s", error_str)
+                    match_delay = re.search(r"retrydelay':\s*'(\d+)s", error_str)
+                    
+                    if match_msg:
+                        try:
+                            sleep_time = int(float(match_msg.group(1))) + 2
+                        except ValueError:
+                            pass
+                    elif match_delay:
+                        try:
+                            sleep_time = int(match_delay.group(1)) + 2
+                        except ValueError:
+                            pass
+                            
+                    logger.warning(f"Rate limit hit: {e}. Sleeping for {sleep_time}s to reset quota (attempt {attempt + 1}/{max_retries})...")
+                    time.sleep(sleep_time)
+                else:
+                    time.sleep(backoff ** attempt)
         return ""
 
     def log_call(self, run_id: str, user_message: str, raw_response: str, duration_seconds: float):

@@ -1,0 +1,39 @@
+Title: Two Sum
+
+Statement:
+You are given an array of N integers a[1..N] and a target sum T. Find two distinct indices i and j (1 <= i < j <= N) such that a[i] + a[j] == T. If such a pair exists, print the 1-based indices i and j separated by a space (print the smaller index first). If no such pair exists, print -1.
+
+Constraints:
+2 <= N <= 10^5
+-10^9 <= a[i] <= 10^9
+-10^9 <= T <= 10^9
+Time limit: 2.0 seconds
+Memory limit: 256 MB
+
+Input format:
+Line 1: two integers N and T
+Line 2: N space-separated integers a[1..N]
+
+Output format:
+Two space-separated integers (the 1-based indices) or -1.
+
+Sample Input 1:
+4 9
+2 7 11 15
+
+Sample Output 1:
+1 2
+
+Sample Input 2:
+3 6
+3 2 4
+
+Sample Output 2:
+2 3
+
+Sample Input 3:
+3 6
+3 3 5
+
+Sample Output 3:
+-1

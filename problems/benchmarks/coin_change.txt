@@ -1,0 +1,32 @@
+Title: Coin Change
+
+Statement:
+You are given N coin denominations value[1..N] and a target amount T. You have an infinite supply of each coin type. Find the minimum number of coins needed to make up the target amount T. If that amount of money cannot be made up by any combination of the coins, print -1.
+
+Constraints:
+1 <= N <= 100
+1 <= T <= 10^4
+1 <= value[i] <= 10^4
+Time limit: 2.0 seconds
+Memory limit: 256 MB
+
+Input format:
+Line 1: two integers N and T
+Line 2: N space-separated integers representing the denominations value[1..N]
+
+Output format:
+A single integer: the minimum coins needed, or -1.
+
+Sample Input 1:
+3 11
+1 2 5
+
+Sample Output 1:
+3
+
+Sample Input 2:
+1 2
+3
+
+Sample Output 2:
+-1
