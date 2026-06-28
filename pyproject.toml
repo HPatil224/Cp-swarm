@@ -1,0 +1,16 @@
+[project]
+name = "cp-swarm"
+version = "0.1.0"
+description = "Multi-agent swarm (Mathematician / Architect / Adversary) for solving competitive programming problems in C++."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

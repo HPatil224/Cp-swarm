@@ -1,0 +1,29 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Runtime artifacts (regenerated every run, never committed)
+workspace/*
+!workspace/.gitkeep
+
+logs/runs/*
+!logs/runs/.gitkeep
+
+testdata/cache/*
+!testdata/cache/.gitkeep
+
+# Compiled binaries / object files that might land outside workspace
+*.o
+*.out
+*.exe
+a.out
+
+# OS noise
+.DS_Store

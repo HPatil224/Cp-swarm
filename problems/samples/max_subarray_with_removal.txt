@@ -1,0 +1,48 @@
+Title: Maximum Subarray Sum with At Most K Removals
+
+Statement:
+You are given an array of N integers, a[1], a[2], ..., a[N], which may
+include negative numbers. You are also given an integer K. You may remove
+at most K contiguous elements from the array as a single contiguous block
+(i.e., choose one contiguous subarray of length at most K and delete it,
+or delete nothing). After this single removal, find the maximum possible
+sum of a contiguous subarray of the remaining array. The remaining array
+is formed by concatenating the part before the removed block with the part
+after it; the maximum subarray afterward may span across that join.
+
+If it is optimal to remove nothing, that is allowed (K removal is "at most",
+not "exactly").
+
+Constraints:
+1 <= N <= 2 * 10^5
+0 <= K <= N
+-10^9 <= a[i] <= 10^9
+Time limit: 2 seconds
+Memory limit: 256 MB
+
+Input format:
+Line 1: two integers N and K
+Line 2: N integers a[1..N]
+
+Output format:
+A single integer: the maximum possible subarray sum achievable.
+
+Sample Input 1:
+5 1
+1 -100 2 3 -100
+
+Sample Output 1:
+5
+
+Sample explanation 1:
+Removing the single element -100 at index 2 leaves [1, 2, 3, -100]; the best
+contiguous subarray is [1,2,3] summing to 6... (note: this sample is a
+placeholder for development purposes and should be hand-verified / replaced
+before being used as a real correctness check in Phase 2/3.)
+
+Sample Input 2:
+4 0
+-1 -2 -3 -4
+
+Sample Output 2:
+-1

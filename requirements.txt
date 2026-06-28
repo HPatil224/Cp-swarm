@@ -1,0 +1,17 @@
+# LLM client
+anthropic>=0.40.0
+
+# Config / env
+python-dotenv>=1.0.0
+pydantic>=2.7.0
+
+# CLI
+click>=8.1.0
+rich>=13.7.0          # nice terminal output for the agent back-and-forth
+
+# Sandbox / resource limiting (Linux: uses resource module from stdlib too)
+psutil>=6.0.0
+
+# Testing (for tests/ — testing the swarm itself)
+pytest>=8.0.0
+pytest-mock>=3.14.0
