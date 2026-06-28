@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: cp-swarm-solver
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: WORKSPACE_DIR
+        value: ./workspace
+      - key: LOGS_DIR
+        value: ./logs/runs
