@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     customForm.addEventListener('submit', handleCustomSubmit);
     btnRunSolver.addEventListener('click', triggerSolver);
     document.getElementById('btn-copy-cpp').addEventListener('click', copyCPPCode);
+    document.getElementById('btn-import-url').addEventListener('click', handleUrlImport);
     
     // Functions
     async function loadProblems() {
@@ -410,5 +411,74 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.textContent = 'Copy Code';
             }, 2000);
         });
+    }
+
+    async function handleUrlImport() {
+        const urlInput = document.getElementById('import-url');
+        const importBtn = document.getElementById('btn-import-url');
+        const statusText = document.getElementById('import-status');
+        
+        const url = urlInput.value.trim();
+        if (!url) return;
+        
+        // Show loading status
+        statusText.textContent = "Fetching and parsing problem content using Gemini...";
+        statusText.classList.remove('hidden');
+        importBtn.disabled = true;
+        
+        try {
+            const res = await fetch('/api/problems/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url })
+            });
+            
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.detail || "Server error");
+            }
+            
+            const data = await res.json();
+            
+            // Populate fields
+            document.getElementById('custom-title').value = data.title || "";
+            document.getElementById('custom-statement').value = data.statement || "";
+            
+            // Populate samples
+            samplesContainer.innerHTML = "";
+            if (data.samples && data.samples.length > 0) {
+                data.samples.forEach(s => {
+                    addSampleRowWithValues(s.input || "", s.output || "");
+                });
+            } else {
+                // If no samples returned, add one blank row
+                addSampleRow();
+            }
+            
+            statusText.classList.add('hidden');
+            urlInput.value = ""; // Clear input
+        } catch (e) {
+            console.error(e);
+            statusText.textContent = `Error: ${e.message}`;
+            statusText.style.color = "var(--color-error)";
+        } finally {
+            importBtn.disabled = false;
+        }
+    }
+    
+    function addSampleRowWithValues(inputVal, outputVal) {
+        const div = document.createElement('div');
+        div.className = 'sample-pair';
+        div.innerHTML = `
+            <div class="sub-group">
+                <label>Input</label>
+                <textarea class="sample-input" required placeholder="Paste test case input...">${inputVal}</textarea>
+            </div>
+            <div class="sub-group">
+                <label>Expected Output</label>
+                <textarea class="sample-output" required placeholder="Expected output...">${outputVal}</textarea>
+            </div>
+        `;
+        samplesContainer.appendChild(div);
     }
 });

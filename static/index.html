@@ -77,6 +77,17 @@
                     <h2>Submit Custom Problem</h2>
                     <p class="section-desc">Piped directly to the multi-agent solver loop.</p>
                     <form id="custom-problem-form">
+                        <div class="url-import-section">
+                            <label for="import-url">Import from URL (Codeforces, GeeksforGeeks, etc.)</label>
+                            <div class="form-group inline-group" style="display: flex; gap: 12px; margin-top: 8px;">
+                                <input type="text" id="import-url" placeholder="https://codeforces.com/problemset/problem/..." style="flex-grow: 1;">
+                                <button type="button" id="btn-import-url" class="btn btn-secondary">Fetch & Parse</button>
+                            </div>
+                            <p id="import-status" class="meta-desc hidden" style="margin-top: 4px; color: var(--color-warning);">Fetching and parsing problem content using Gemini...</p>
+                        </div>
+                        
+                        <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
+                        
                         <div class="form-group">
                             <label for="custom-title">Problem Title</label>
                             <input type="text" id="custom-title" required placeholder="e.g. Range Minimum Queries">

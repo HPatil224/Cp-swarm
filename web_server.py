@@ -71,10 +71,22 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # Pydantic schemas
+class SampleCase(BaseModel):
+    input: str
+    output: str
+
+class ProblemSchema(BaseModel):
+    title: str
+    statement: str
+    samples: List[SampleCase]
+
 class CustomProblemRequest(BaseModel):
     title: str
     statement: str
     samples: List[dict]
+
+class ImportRequest(BaseModel):
+    url: str
 
 class SolveRequest(BaseModel):
     file_path: Optional[str] = None
@@ -128,6 +140,90 @@ def get_problems():
                     logger.error(f"Failed to parse problem file {filepath}: {e}")
                     
     return problems_list
+
+@app.post("/api/problems/import")
+async def import_problem(request: ImportRequest):
+    """Fetches a problem URL and extracts its details using Gemini, falling back to knowledge base on HTTP failures (like 403)."""
+    import httpx
+    from google import genai
+    from google.genai import types
+    import json
+    
+    url = request.url
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive"
+    }
+    
+    html_content = ""
+    fetch_success = False
+    
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, headers=headers, timeout=10.0) as client:
+            response = await client.get(url)
+            if response.status_code == 200:
+                html_content = response.text
+                fetch_success = True
+            else:
+                logger.warning(f"Direct fetch returned status code {response.status_code}. Using Gemini knowledge base fallback.")
+    except Exception as e:
+        logger.warning(f"Direct fetch failed: {e}. Using Gemini knowledge base fallback.")
+        
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if not gemini_key:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable not set")
+        
+    try:
+        client = genai.Client(api_key=gemini_key)
+        
+        if fetch_success:
+            html_content = re.sub(r"<script.*?>.*?</script>", "", html_content, flags=re.DOTALL)
+            html_content = re.sub(r"<style.*?>.*?</style>", "", html_content, flags=re.DOTALL)
+            html_content = re.sub(r"<svg.*?>.*?</svg>", "", html_content, flags=re.DOTALL)
+            html_content = html_content[:50000]
+            
+            prompt_content = f"Raw HTML content from URL ({url}):\n\n{html_content}"
+            system_instruction = (
+                "You are an expert system that extracts competitive programming problems from raw HTML content. "
+                "You MUST parse the HTML and return a clean JSON object containing:\n"
+                "- 'title': The problem title.\n"
+                "- 'statement': The description, input/output specifications, constraints, and any explanation.\n"
+                "- 'samples': A list of objects, each with 'input' and 'output' strings matching the sample cases.\n\n"
+                "Format the output strictly as a JSON object, without any markdown formatting or surrounding code blocks."
+            )
+        else:
+            prompt_content = f"The user requested the competitive programming problem at URL: {url}. " \
+                             f"Since direct fetch failed due to security/Cloudflare blocks, please reconstruct the " \
+                             f"problem details entirely from your knowledge base (especially if it is from Codeforces, LeetCode, or GFG)."
+            system_instruction = (
+                "You are an expert competitive programming assistant. Based on the requested URL, "
+                "identify the problem (e.g. Codeforces 2240B, Codeforces 4A, etc.) and reconstruct a clean JSON object containing:\n"
+                "- 'title': The problem title.\n"
+                "- 'statement': The description statement, constraints, input/output specifications.\n"
+                "- 'samples': A list of objects, each with 'input' and 'output' strings matching the standard sample cases for this problem.\n\n"
+                "Format the output strictly as a JSON object, without any markdown formatting or surrounding code blocks."
+            )
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt_content,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                response_mime_type="application/json",
+                response_schema=ProblemSchema,
+                max_output_tokens=3000
+            )
+        )
+        
+        raw_text = response.text or ""
+        parsed_data = json.loads(raw_text.strip())
+        return parsed_data
+        
+    except Exception as e:
+        logger.error(f"Error parsing problem with Gemini: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse problem description: {str(e)}")
 
 @app.post("/api/solve")
 async def start_solve(request: SolveRequest):
