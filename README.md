@@ -4,6 +4,8 @@ A multi-agent self-correcting swarm designed to analyze, write, debug, and stres
 
 It coordinates three specialized agents (Mathematician, Architect, and Adversary) in a closed-loop sandbox environment, simulating the workflow of a high-performance team of software engineers.
 
+⚡ **Live Demo URL**: [https://cp-swarm-solver.onrender.com](https://cp-swarm-solver.onrender.com)
+
 ---
 
 ## Architecture & Agent Workflow
@@ -89,11 +91,14 @@ LOGS_DIR=./logs/runs
 ##  Usage
 
 ###  Web Dashboard UI (Recommended)
-Launch the FastAPI web server:
-```bash
-python -m uvicorn web_server:app --port 8000 --reload
-```
-Open **[http://localhost:8000](http://localhost:8000)** in your browser. Choose a benchmark problem or paste a custom one, click **"Run Swarm Solver"**, and trace agent decisions, C++ code blocks, and adversary tests live!
+You can visit the live deployed demo instantly at: **[https://cp-swarm-solver.onrender.com](https://cp-swarm-solver.onrender.com)**.
+
+Alternatively, to run the dashboard locally:
+1. Launch the FastAPI web server:
+   ```bash
+   python -m uvicorn web_server:app --port 8000 --reload
+   ```
+2. Open **[http://localhost:8000](http://localhost:8000)** in your browser. Choose a benchmark problem or paste a custom one, click **"Run Swarm Solver"**, and trace agent decisions, C++ code blocks, and adversary tests live!
 
 ###  Benchmark Mode
 Run the entire 5-problem benchmark suite from the terminal to generate a markdown table report:
@@ -115,3 +120,4 @@ A `Dockerfile` and `render.yaml` blueprint are provided for easy deployment to *
 2. Select **Docker** environment.
 3. Configure the environment variables (`GEMINI_API_KEY`).
 4. Deploy! Render will build the container, install `g++`, and serve the dashboard globally with WebSockets enabled.
+
