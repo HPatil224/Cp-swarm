@@ -120,3 +120,4 @@ A `Dockerfile` and `render.yaml` blueprint are provided for easy deployment to *
 2. Select **Docker** environment.
 3. Configure the environment variables (`GEMINI_API_KEY`).
 4. Deploy! Render will build the container, install `g++`, and serve the dashboard globally with WebSockets enabled.
+
