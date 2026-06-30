@@ -218,7 +218,7 @@ async def import_problem(request: ImportRequest):
         )
         
         raw_text = response.text or ""
-        parsed_data = json.loads(raw_text.strip())
+        parsed_data = json.loads(raw_text.strip(), strict=False)
         return parsed_data
         
     except Exception as e:
